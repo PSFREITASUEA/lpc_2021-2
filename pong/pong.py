@@ -1,142 +1,227 @@
-import turtle
+import functools
 import os
-
-# draw screen
-screen = turtle.Screen()
-screen.title("My Pong")
-screen.bgcolor("black")
-screen.setup(width=800, height=600)
-screen.tracer(0)
-
-# draw paddle 1
-paddle_1 = turtle.Turtle()
-paddle_1.speed(0)
-paddle_1.shape("square")
-paddle_1.color("white")
-paddle_1.shapesize(stretch_wid=5, stretch_len=1)
-paddle_1.penup()
-paddle_1.goto(-350, 0)
-
-# draw paddle 2
-paddle_2 = turtle.Turtle()
-paddle_2.speed(0)
-paddle_2.shape("square")
-paddle_2.color("white")
-paddle_2.shapesize(stretch_wid=5, stretch_len=1)
-paddle_2.penup()
-paddle_2.goto(350, 0)
-
-# draw ball
-ball = turtle.Turtle()
-ball.speed(0)
-ball.shape("square")
-ball.color("white")
-ball.penup()
-ball.goto(0, 0)
-ball.dx = 1
-ball.dy = 1
-
-# score
-score_1 = 0
-score_2 = 0
-
-# head-up display
-hud = turtle.Turtle()
-hud.speed(0)
-hud.shape("square")
-hud.color("white")
-hud.penup()
-hud.hideturtle()
-hud.goto(0, 260)
-hud.write("0 : 0", align="center", font=("Press Start 2P", 24, "normal"))
+import turtle
 
 
-def paddle_1_up():
-    y = paddle_1.ycor()
-    if y < 250:
-        y += 30
+def create_screen():
+    # draw screen
+
+    screen.title("My Pong")
+    screen.bgcolor("black")
+    screen.setup(width=1000, height=750)
+
+
+def setup_turtle_border_pen():
+    turtle_border_pen.color("white")
+    turtle_border_pen.pensize(3)
+    turtle_border_pen.speed(6)
+
+
+def move_turtle_border_pen_to_bottom_left():
+    turtle_border_pen.penup()
+    turtle_border_pen.hideturtle()
+    turtle_border_pen.goto(-500, -375)
+    turtle_border_pen.showturtle()
+    turtle_border_pen.pendown()
+
+
+def draw_canvas_border():
+    turtle_border_pen.forward(1000)
+    turtle_border_pen.left(90)
+    turtle_border_pen.forward(750)
+    turtle_border_pen.left(90)
+    turtle_border_pen.forward(1000)
+    turtle_border_pen.left(90)
+    turtle_border_pen.forward(750)
+    turtle_border_pen.hideturtle()
+
+
+def setup_turtle_hud_pen():
+    turtle_hud_pen.speed(0)
+    turtle_hud_pen.shape("square")
+    turtle_hud_pen.color("white")
+
+
+def move_turtle_hud_pen_and_draw_score():
+    turtle_hud_pen.penup()
+    turtle_hud_pen.hideturtle()
+    turtle_hud_pen.goto(0, 260)
+    turtle_hud_pen.write("0 : 0", align="center", font=("Press Start 2P", 24, "normal"))
+
+
+def draw_player_one():
+    turtle_player_one_pen.hideturtle()
+    turtle_player_one_pen.speed(0)
+    turtle_player_one_pen.shape("square")
+    turtle_player_one_pen.color("white")
+    turtle_player_one_pen.shapesize(stretch_wid=5, stretch_len=1)
+    turtle_player_one_pen.penup()
+    turtle_player_one_pen.goto(-450, 0)
+    turtle_player_one_pen.showturtle()
+
+
+def draw_player_two():
+    turtle_player_two_pen.hideturtle()
+    turtle_player_two_pen.speed(0)
+    turtle_player_two_pen.shape("square")
+    turtle_player_two_pen.color("white")
+    turtle_player_two_pen.shapesize(stretch_wid=5, stretch_len=1)
+    turtle_player_two_pen.penup()
+    turtle_player_two_pen.goto(450, 0)
+    turtle_player_two_pen.showturtle()
+
+
+def draw_ball():
+    turtle_ball.speed(0)
+    turtle_ball.shape("square")
+    turtle_ball.color("white")
+    turtle_ball.penup()
+    turtle_ball.goto(0, 0)
+
+
+def move_player_down(key):
+    player_map_control = {'s': turtle_player_one_pen,
+                          'Down': turtle_player_two_pen}
+    player_position = player_map_control[key].ycor()
+    if player_position > -325:
+        player_position -= 25
     else:
-        y = 250
-    paddle_1.sety(y)
+        player_position = -325
+    player_map_control[key].sety(player_position)
 
 
-def paddle_1_down():
-    y = paddle_1.ycor()
-    if y > -250:
-        y += -30
+def move_player_up(key):
+    player_map_control = {'w': turtle_player_one_pen,
+                          'Up': turtle_player_two_pen}
+    player_position = player_map_control[key].ycor()
+    if player_position < 325:
+        player_position += 25
     else:
-        y = -250
-    paddle_1.sety(y)
+        player_position = 325
+    player_map_control[key].sety(player_position)
 
 
-def paddle_2_up():
-    y = paddle_2.ycor()
-    if y < 250:
-        y += 30
-    else:
-        y = 250
-    paddle_2.sety(y)
+def setup_players_control():
+    screen.listen()
+    screen.onkeypress(functools.partial(move_player_up, "w"), key="w")
+    screen.onkeypress(functools.partial(move_player_down, "s"), key="s")
+    screen.onkeypress(functools.partial(move_player_up, "Up"), key="Up")
+    screen.onkeypress(functools.partial(move_player_down, "Down"), key="Down")
 
 
-def paddle_2_down():
-    y = paddle_2.ycor()
-    if y > -250:
-        y += -30
-    else:
-        y = -250
-    paddle_2.sety(y)
+def ball_touched_player_two_horizontally():
+    return 425 < turtle_ball.xcor() < 435
 
 
-# keyboard
-screen.listen()
-screen.onkeypress(paddle_1_up, "w")
-screen.onkeypress(paddle_1_down, "s")
-screen.onkeypress(paddle_2_up, "Up")
-screen.onkeypress(paddle_2_down, "Down")
+def ball_touched_player_two_vertically():
+    return turtle_player_two_pen.ycor() + 60 > turtle_ball.ycor() > turtle_player_two_pen.ycor() - 60
 
-while True:
-    screen.update()
 
-    # ball movement
-    ball.setx(ball.xcor() + ball.dx)
-    ball.sety(ball.ycor() + ball.dy)
+def ball_touched_player_two_top():
+    return turtle_player_two_pen.ycor() + 60 > turtle_ball.ycor() > turtle_player_two_pen.ycor()
 
-    # collision with the upper wall
-    if ball.ycor() > 290:
-        os.system("afplay bounce.wav&")
-        ball.sety(290)
-        ball.dy *= -1
 
-    # collision with lower wall
-    if ball.ycor() < -290:
-        os.system("afplay bounce.wav&")
-        ball.sety(-290)
-        ball.dy *= -1
+def ball_touched_player_one_horizontally():
+    return -425 > turtle_ball.xcor() > - 435
 
-    # collision with left wall
-    if ball.xcor() < -390:
-        score_2 += 1
-        hud.clear()
-        hud.write("{} : {}".format(score_1, score_2), align="center", font=("Press Start 2P", 24, "normal"))
-        os.system("afplay 258020__kodack__arcade-bleep-sound.wav&")
-        ball.goto(0, 0)
-        ball.dx *= -1
 
-    # collision with right wall
-    if ball.xcor() > 390:
-        score_1 += 1
-        hud.clear()
-        hud.write("{} : {}".format(score_1, score_2), align="center", font=("Press Start 2P", 24, "normal"))
-        os.system("afplay 258020__kodack__arcade-bleep-sound.wav&")
-        ball.goto(0, 0)
-        ball.dx *= -1
+def ball_touched_player_one_vertically():
+    return turtle_player_one_pen.ycor() + 60 > turtle_ball.ycor() > turtle_player_one_pen.ycor() - 60
 
-    # collision with the paddle 1
-    if ball.xcor() < -330 and paddle_1.ycor() + 50 > ball.ycor() > paddle_1.ycor() - 50:
-        ball.dx *= -1
-        os.system("afplay bounce.wav&")
 
-    # collision with the paddle 2
-    if ball.xcor() > 330 and paddle_2.ycor() + 50 > ball.ycor() > paddle_2.ycor() - 50:
-        ball.dx *= -1
-        os.system("afplay bounce.wav&")
+def ball_hit_player_vertically_on_top(turtle_player):
+    return turtle_player.ycor() + 60 > turtle_ball.ycor() > turtle_player.ycor()
+
+
+def ball_hit_player_vertically_on_bottom(turtle_player):
+    return turtle_player.ycor() > turtle_ball.ycor() > turtle_player.ycor() - 60
+
+
+def ball_hit_player_on_center(turtle_player):
+    return turtle_player.ycor() + 10 > turtle_ball.ycor() > turtle_player.ycor() - 10
+
+
+if __name__ == '__main__':
+    screen = turtle.Screen()
+
+    turtle_border_pen = turtle.Turtle()
+    turtle_hud_pen = turtle.Turtle()
+
+    turtle_player_one_pen = turtle.Turtle()
+    turtle_player_two_pen = turtle.Turtle()
+    turtle_ball = turtle.Turtle()
+
+    player_one_score = 0
+    player_two_score = 0
+    turtle_ball_x_velocity = 5
+    turtle_ball_y_velocity = 0
+
+    create_screen()
+    setup_turtle_border_pen()
+    move_turtle_border_pen_to_bottom_left()
+    draw_canvas_border()
+
+    # head-up display
+    setup_turtle_hud_pen()
+    move_turtle_hud_pen_and_draw_score()
+
+    # draw paddle 1
+    draw_player_one()
+
+    # draw paddle 2
+    draw_player_two()
+
+    # draw ball
+    draw_ball()
+
+    setup_players_control()
+
+    while True:
+        turtle_ball.setx(turtle_ball.xcor() + turtle_ball_x_velocity)
+        turtle_ball.sety(turtle_ball.ycor() + turtle_ball_y_velocity)
+
+        if ball_touched_player_two_horizontally() and ball_touched_player_two_vertically():
+            turtle_ball_x_velocity *= -1
+            os.system("bounce.wav")
+            if ball_hit_player_vertically_on_top(turtle_player_two_pen):
+                turtle_ball_y_velocity += 10
+            elif ball_hit_player_vertically_on_bottom(turtle_player_two_pen):
+                turtle_ball_y_velocity -= 10
+            elif ball_hit_player_on_center(turtle_player_two_pen):
+                turtle_ball_y_velocity = 0
+
+        if ball_touched_player_one_horizontally() and ball_touched_player_one_vertically():
+            turtle_ball_x_velocity *= -1
+            os.system("bounce.wav")
+            if ball_hit_player_vertically_on_top(turtle_player_one_pen):
+                turtle_ball_y_velocity += 10
+            elif ball_hit_player_vertically_on_bottom(turtle_player_one_pen):
+                turtle_ball_y_velocity -= 10
+            elif ball_hit_player_on_center(turtle_player_one_pen):
+                turtle_ball_y_velocity = 0
+
+        if turtle_ball.ycor() > 365:
+            turtle_ball.sety(365)
+            turtle_ball_y_velocity *= -1
+
+        if turtle_ball.ycor() < -365:
+            turtle_ball.sety(-365)
+            turtle_ball_y_velocity *= -1
+
+        if turtle_ball.xcor() > 490:
+            player_one_score += 1
+            turtle_hud_pen.clear()
+            turtle_hud_pen.write("{} : {}".format(player_one_score, player_two_score), align="center",
+                                 font=("Press Start 2P", 24, "normal"))
+            turtle_ball.setposition(0, 0)
+            turtle_ball_y_velocity = 0
+            os.system("bleep_sound.wav")
+
+        if turtle_ball.xcor() < -490:
+            player_two_score += 1
+            turtle_hud_pen.clear()
+            turtle_hud_pen.write("{} : {}".format(player_one_score, player_two_score), align="center",
+                                 font=("Press Start 2P", 24, "normal"))
+            turtle_ball.setposition(0, 0)
+            turtle_ball_y_velocity = 0
+            os.system("bleep_sound.wav")
